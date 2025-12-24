@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 
-# 1. Membaca Data
+# 1. Membaca Data 
 df = pd.read_csv('diabetes_preprocessed.csv')
 X = df.drop('Outcome', axis=1)
 y = df['Outcome']
@@ -17,14 +17,16 @@ model = LogisticRegression(max_iter=1000)
 model.fit(X_train, y_train)
 
 # 3. Simpan Model Secara Manual
-# Memastikan folder 'artifacts/model' dibuat oleh MLflow
+# Simpan dengan nama 'model'. MLflow akan menempatkannya di artifacts/model
 mlflow.sklearn.log_model(model, "model")
 
-# 4. Verifikasi di log GitHub Actions
+# 4. Verifikasi di log GitHub Actions 
 y_pred = model.predict(X_test)
 report = classification_report(y_test, y_pred)
 
-print("-" * 30)
-print("RE-TRAINING CI SELESAI")
-print("-" * 30)
-print("Laporan Klasifikasi:\n", report)
+print("\n" + "="*30)
+print("HASIL TRAINING WORKFLOW CI")
+print("="*30)
+print(report)
+print("="*30)
+print("Model berhasil disimpan ke folder: artifacts/model")
