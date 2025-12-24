@@ -18,32 +18,38 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install mlflow scikit-learn pandas setuptools wheel
+          # Menambahkan setuptools, wheel, dan pydantic 
+          pip install mlflow scikit-learn pandas setuptools wheel pydantic
 
       - name: Run mlflow project
         run: |
-          # Menjalankan training (mlruns akan tercipta di root)
+          # Menjalankan training
           mlflow run MLProject/ --env-manager local
 
       - name: Get latest MLflow run_id
         id: run_id
         run: |
-          # Gunakan Python untuk mengambil ID terakhir dari folder mlruns manapun 
+          # Mengambil ID run terbaru menggunakan python API yang lebih akurat
           RUN_ID=$(python -c "import mlflow; print(mlflow.search_runs().iloc[0]['run_id'])")
           echo "RUN_ID=$RUN_ID" >> $GITHUB_OUTPUT
           echo "Berhasil mendapatkan ID: $RUN_ID"
+
+      - name: Verify Artifact Path
+        run: |
+          # Memastikan folder 'model' benar-benar ada
+          # Jika folder ini tidak muncul di log, berarti modelling.py gagal simpan
+          ls -R mlruns/0/${{ steps.run_id.outputs.RUN_ID }}/artifacts/
 
       - name: Upload to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: diabetes-model
-          # Jalur dikembalikan ke root mlruns
-          path: mlruns/0/${{ steps.run_id.outputs.RUN_ID }}/artifacts/model
+          path: ./mlruns/0/${{ steps.run_id.outputs.RUN_ID }}/artifacts/model
 
       - name: Build Docker Model
         run: |
-          # Jalur dikembalikan ke root mlruns
-          mlflow models build-docker -m mlruns/0/${{ steps.run_id.outputs.RUN_ID }}/artifacts/model -n diabetes-predictor
+          # Build docker image dari file model yang sudah diverifikasi
+          mlflow models build-docker -m ./mlruns/0/${{ steps.run_id.outputs.RUN_ID }}/artifacts/model -n diabetes-predictor
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
