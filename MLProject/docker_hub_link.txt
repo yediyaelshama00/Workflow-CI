@@ -1,0 +1,1 @@
+https://hub.docker.com/repository/docker/yediyaelshama00/diabetes-predictor/general
